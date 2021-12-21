@@ -19,10 +19,12 @@ func NewStats() *stats {
 
 func (s *stats) AddPeer(peer *Peer)  {
 	s.packets[peer.ID()] = make(map[uint64]int)
+	s.accumulate[peer.ID()] = make(map[uint64]int)
 }
 
 func (s *stats) ClosePeer(peer *Peer)  {
 	delete(s.packets, peer.ID())
+	delete(s.accumulate, peer.ID())
 }
 
 func (s *stats) AddPacket(peer *Peer, code uint64)  {
