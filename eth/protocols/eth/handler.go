@@ -108,6 +108,7 @@ func closePeer(s *stats, p *Peer) {
 func MakeProtocols(backend Backend, network uint64, dnsdisc enode.Iterator) []p2p.Protocol {
 	protocols := make([]p2p.Protocol, len(ProtocolVersions))
 	stats := NewStats()
+	stats.Cron()
 	for i, version := range ProtocolVersions {
 		version := version // Closure
 
