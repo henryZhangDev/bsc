@@ -121,8 +121,6 @@ type TxContext struct {
 //
 // The EVM should never be reused and is not thread safe.
 type EVM struct {
-	multipleCallLocker sync.Mutex
-
 	// Context provides auxiliary blockchain related information
 	Context BlockContext
 	TxContext
@@ -218,9 +216,6 @@ func (evm *EVM) Interpreter() Interpreter {
 // the necessary steps to create accounts and reverses the state in case of an
 // execution error or failed value transfer.
 func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error) {
-	evm.multipleCallLocker.Lock()
-	defer evm.multipleCallLocker.Unlock()
-
 	if evm.vmConfig.NoRecursion && evm.depth > 0 {
 		return nil, gas, nil
 	}
@@ -290,9 +285,6 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 }
 
 func (evm *EVM) MyCall(caller ContractRef, addr common.Address, input []byte, gas uint64, value *big.Int) (ret []byte, leftOverGas uint64, err error, logs []*types.Log) {
-	evm.multipleCallLocker.Lock()
-	defer evm.multipleCallLocker.Unlock()
-
 	if evm.vmConfig.NoRecursion && evm.depth > 0 {
 		return nil, gas, nil, logs
 	}
