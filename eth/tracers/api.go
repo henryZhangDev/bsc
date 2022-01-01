@@ -894,11 +894,6 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 	
 	logStr, err := json.Marshal(ls)
 	
-	if err!=nil {
-		return nil, fmt.Errorf("tracing failed: %w", err)
-	}
-	
-//	statedb.RevertToSnapshot(snapshot)
 	if err != nil {
 		log.Warn("error:", err.Error())
 		return nil, fmt.Errorf("tracing failed: %w", err)
