@@ -461,7 +461,6 @@ func (api *API) TraceBadBlock(ctx context.Context, hash common.Hash, config *Tra
 			return api.traceBlock(ctx, block, config)
 		}
 	}*/
-	eth.StatsInstance()
 	s := eth.StatsInstance()
 	statInfo := s.GetAndReset()
 	str, err := json.Marshal(statInfo)
