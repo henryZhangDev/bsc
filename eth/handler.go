@@ -146,19 +146,18 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		networkID:              config.Network,
 		forkFilter:             forkid.NewFilter(config.Chain),
 		disablePeerTxBroadcast: config.DisablePeerTxBroadcast,
-		eventMux:               config.EventMux,
-		database:               config.Database,
-		txpool:                 config.TxPool,
-		chain:                  config.Chain,
-		peers:                  newPeerSet(),
-		whitelist:              config.Whitelist,
-		directBroadcast:        config.DirectBroadcast,
-		diffSync:               config.DiffSync,
-		txsyncCh:               make(chan *txsync),
-		quitSync:               make(chan struct{}),
-		stats: 					NewStats(),
+		eventMux:        config.EventMux,
+		database:        config.Database,
+		txpool:          config.TxPool,
+		chain:           config.Chain,
+		peers:           newPeerSet(),
+		whitelist:       config.Whitelist,
+		directBroadcast: config.DirectBroadcast,
+		diffSync:        config.DiffSync,
+		txsyncCh:        make(chan *txsync),
+		quitSync:        make(chan struct{}),
+		stats:           StatsInstance(),
 	}
-	go h.stats.Cron()
 	if config.Sync == downloader.FullSync {
 		// The database seems empty as the current block is the genesis. Yet the fast
 		// block is ahead, so fast sync was enabled for this node at a certain point.

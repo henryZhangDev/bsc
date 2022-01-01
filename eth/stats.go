@@ -7,19 +7,19 @@ import (
 	"sync"
 	"time"
 )
-
+var instance = &stats{
+	packets: 	make(map[string]map[string]int),
+	accumulate: make(map[string]map[string]int),
+	lock:		new(sync.RWMutex),
+}
 type stats struct {
 	packets map[string]map[string]int
 	accumulate map[string]map[string]int
 	lock    *sync.RWMutex
 }
 
-func NewStats() *stats {
-	return &stats{
-		packets: 	make(map[string]map[string]int),
-		accumulate: make(map[string]map[string]int),
-		lock:		new(sync.RWMutex),
-	}
+func StatsInstance() *stats {
+	return instance
 }
 func (s *stats) AddPacket(peerId string, name string)  {
 	s.lock.Lock()
@@ -82,6 +82,19 @@ func (s *stats) PrintAndReset()  {
 		delete(s.packets, key)
 	}
 }
+
+func (s *stats) GetAndReset() map[string]map[string]int {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	copy := make(map[string]map[string]int)
+	s.Print(s.packets)
+	for key, _ := range s.packets {
+		copy[key] = s.packets[key]
+		delete(s.packets, key)
+	}
+	return copy
+}
+//@deprecated
 func (s *stats) Cron()  {
 	log.Warn("start stats cron job, one minute")
 	d := time.Minute*5
