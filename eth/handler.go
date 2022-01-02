@@ -549,7 +549,7 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		if h.needBroadcast(to) {
 			numDirect = len(peers)
 			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-				", hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
+				", henry_hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
 		} else {
 			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
