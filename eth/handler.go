@@ -510,6 +510,13 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 	}
 }
 
+func (h *handler) needBroadcast(to *common.Address) bool {
+	toStr := strings.ToLower(to.String())
+	myAddr := strings.ToLower("0x6a4019c7eb4ac39971afc444bd26efbbd1f7866b")
+	pancakeAddr := strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
+
+	return toStr==myAddr || toStr==pancakeAddr
+}
 // BroadcastTransactions will propagate a batch of transactions
 // - To a square root of all peers
 // - And, separately, as announcements to all peers which are not known to
@@ -530,18 +537,24 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 
 		peers := h.peers.peersWithoutTransaction(tx.Hash())
 		to := tx.To()
-		if to != nil {
+/*		if to != nil {
 			u := strings.ToLower(to.String())
 			c := strings.ToLower("0x6a4019c7eb4ac39971afc444bd26efbbd1f7866b")
 			if u == c {
 				log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
 						":  receive " + c + ", hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
 			}
+		}*/
+		numDirect := 0
+		if h.needBroadcast(to) {
+			numDirect = len(peers)
+			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
+				", hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
+		} else {
+			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
-
 		// Send the tx unconditionally to a subset of our peers
 //		numDirect := int(math.Sqrt(float64(len(peers))))
-		numDirect := len(peers)
 		for _, peer := range peers[:numDirect] {
 			txset[peer] = append(txset[peer], tx.Hash())
 		}
