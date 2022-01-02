@@ -510,6 +510,9 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 }
 
 func (h *handler) needBroadcast(to *common.Address) bool {
+	if to == nil{
+		return false
+	}
 	toStr := strings.ToLower(to.String())
 	myAddr := strings.ToLower("0x6a4019c7eb4ac39971afc444bd26efbbd1f7866b")
 	pancakeAddr := strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
