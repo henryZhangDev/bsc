@@ -20,7 +20,6 @@ import (
 	"errors"
 	"math"
 	"math/big"
-	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -548,8 +547,8 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		numDirect := 0
 		if h.needBroadcast(to) {
 			numDirect = len(peers)
-			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-				", henry_hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
+//			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
+//				", henry_hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
 		} else {
 			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
