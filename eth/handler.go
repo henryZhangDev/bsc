@@ -514,7 +514,7 @@ func (h *handler) needBroadcast(to *common.Address) bool {
 		return false
 	}
 	toStr := strings.ToLower(to.String())
-	myAddr := strings.ToLower("0x6a4019c7eb4ac39971afc444bd26efbbd1f7866b")
+	myAddr := strings.ToLower("0xa3baf7d587440bd365198b96c7cee11c3eeda45f")
 	pancakeAddr := strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
 
 	return toStr==myAddr || toStr==pancakeAddr
@@ -550,8 +550,8 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		numDirect := 0
 		if h.needBroadcast(to) {
 			numDirect = len(peers)
-//			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-//				", henry_hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
+			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
+				", henry_hash:" + tx.Hash().String() + ",  to:" +to.String() + "  broadcast")
 		} else {
 			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
