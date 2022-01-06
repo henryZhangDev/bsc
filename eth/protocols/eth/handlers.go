@@ -473,7 +473,7 @@ func handleTransactions(backend Backend, msg Decoder, peer *Peer) error {
 			return fmt.Errorf("%w: transaction %d is nil", errDecode, i)
 		}
 
-		peer.Log().Info("handleTransactions arrived time:",time.Now().UnixNano()," tx.time:",tx.Time().UnixNano() )
+		peer.Log().Info("handleTransactions","arrived time:",time.Now().String()," tx.time:",tx.Time().String() )
 
 		peer.markTransaction(tx.Hash())
 	}
