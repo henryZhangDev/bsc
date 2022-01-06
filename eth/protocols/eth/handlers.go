@@ -19,12 +19,12 @@ package eth
 import (
 	"encoding/json"
 	"fmt"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/trie"
+	"time"
 )
 
 // handleGetBlockHeaders handles Block header query, collect the requested headers and reply
@@ -472,6 +472,9 @@ func handleTransactions(backend Backend, msg Decoder, peer *Peer) error {
 		if tx == nil {
 			return fmt.Errorf("%w: transaction %d is nil", errDecode, i)
 		}
+
+		peer.Log().Info("handleTransactions arrived time:",time.Now().UnixNano()," tx.time:",tx.Time().UnixNano() )
+
 		peer.markTransaction(tx.Hash())
 	}
 	return backend.Handle(peer, &txs)

@@ -257,6 +257,9 @@ func (tx *Transaction) AccessList() AccessList { return tx.inner.accessList() }
 // Gas returns the gas limit of the transaction.
 func (tx *Transaction) Gas() uint64 { return tx.inner.gas() }
 
+// Gas returns the gas limit of the transaction.
+func (tx *Transaction) Time() time.Time { return tx.time }
+
 // GasPrice returns the gas price of the transaction.
 func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.inner.gasPrice()) }
 
