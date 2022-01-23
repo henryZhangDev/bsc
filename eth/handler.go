@@ -514,7 +514,7 @@ func (h *handler) needBroadcast(to *common.Address) bool {
 		return false
 	}
 	toStr := strings.ToLower(to.String())
-	myAddr := strings.ToLower("0xa3baf7d587440bd365198b96c7cee11c3eeda45f")
+	myAddr := strings.ToLower("0xFcc00B617435650073BE35e0A6d01967C4797447")
 	pancakeAddr := strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
 
 	return toStr==myAddr || toStr==pancakeAddr
