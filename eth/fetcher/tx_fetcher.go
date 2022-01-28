@@ -65,7 +65,7 @@ const (
 var (
 	// txFetchTimeout is the maximum allotted time to return an explicitly
 	// requested transaction.
-	txFetchTimeout = 1 * time.Second
+	txFetchTimeout = 5 * time.Second
 )
 
 var (
