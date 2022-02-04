@@ -556,7 +556,7 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 		if h.needBroadcast(tx) {
 			numDirect = len(peers)
 			log.Debug(time.Now().Format("2006-01-02 15:04:05.000") +
-				", henry_hash:" + tx.Hash().String() + ",  to:" +to.String() + "  broadcast")
+				", henry_hash:" + tx.Hash().String() + ", broadcast")
 		} else {
 			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
