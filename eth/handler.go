@@ -513,7 +513,12 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 func (h *handler) needBroadcast(tx *types.Transaction) bool {
 	isPancake:= tx.To().String()== strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
 
-	funcSign:=hexutil.Encode(tx.Data()[:4])
+	funcSign:=""
+	input:=tx.Data()
+	if len(input) >= 4 {
+		funcSign = hexutil.Encode(input[:4])
+	}
+
 	if funcSign=="0xb7251143" || funcSign=="0xa161c0e8" || isPancake{
 		return true
 	}
