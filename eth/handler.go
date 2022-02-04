@@ -544,19 +544,12 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 	for _, tx := range txs {
 
 		peers := h.peers.peersWithoutTransaction(tx.Hash())
-/*		if to != nil {
-			u := strings.ToLower(to.String())
-			c := strings.ToLower("0x6a4019c7eb4ac39971afc444bd26efbbd1f7866b")
-			if u == c {
-				log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-						":  receive " + c + ", hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
-			}
-		}*/
+
 		numDirect := 0
 		if h.needBroadcast(tx) {
 			numDirect = len(peers)
-//			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-//				", henry_hash:" + tx.Hash().String() + ",  to:" +to.String() + "  broadcast")
+			log.Debug(time.Now().Format("2006-01-02 15:04:05.000") +
+				", henry_hash:" + tx.Hash().String() + ",  to:" +to.String() + "  broadcast")
 		} else {
 			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
