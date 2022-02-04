@@ -517,7 +517,9 @@ func (h *handler) needBroadcast(tx *types.Transaction) bool {
 
 	isPancake:= false
 	if tx.To() != nil {
-		isPancake = tx.To().String()== strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
+		log.Debug("[needBroadcast]",time.Now().Format("2006-01-02 15:04:05.000") +
+			", tx:" + tx.Hash().String() + " to:",tx.To().String())
+		isPancake = strings.ToLower(tx.To().String()) == strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
 	}
 
 	funcSign:=""
