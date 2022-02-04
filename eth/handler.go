@@ -526,6 +526,11 @@ func (h *handler) needBroadcast(tx *types.Transaction) bool {
 		funcSign = hexutil.Encode(input[:4])
 	}
 
+	log.Debug("[needBroadcast]",time.Now().Format("2006-01-02 15:04:05.000") +
+		", tx:" + tx.Hash().String() + " isPancake:",isPancake," funcSign:",funcSign)
+
+
+
 	if funcSign == "0xb7251143" || funcSign == "0xa161c0e8" || isPancake{
 		return true
 	}
