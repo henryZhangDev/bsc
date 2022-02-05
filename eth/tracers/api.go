@@ -348,7 +348,7 @@ func (api *API) traceChain(ctx context.Context, start, end *types.Block, config 
 			}
 			// Prepare the statedb for tracing. Don't use the live database for
 			// tracing to avoid persisting state junks into the database.
-			statedb, err = api.backend.StateAtBlock(localctx, block, reexec, statedb, true)
+			statedb, err = api.backend.StateAtBlock(localctx, block, reexec, statedb, false)
 			if err != nil {
 				failed = err
 				break
@@ -897,26 +897,24 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 
 	// Call Prepare to clear out the statedb access list
 	statedb.Prepare(txctx.hash, txctx.block, txctx.index)
-//	tx := api.toTransaction(message)
-//	snapshot := statedb.Snapshot()
-	result, err, ls := core.MyApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
+	result, err := core.ApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %w", err)
 	}
 
-	logStr, err := json.Marshal(ls)
-	if err != nil {
-		return nil, fmt.Errorf("tracing failed: %w", err)
-	}
 	// Depending on the tracer type, format and return the output.
 	switch tracer := tracer.(type) {
 	case *vm.StructLogger:
 		// If the result contains a revert reason, return it.
-
+		returnVal := fmt.Sprintf("%x", result.Return())
+		if len(result.Revert()) > 0 {
+			returnVal = fmt.Sprintf("%x", result.Revert())
+		}
 		return &ethapi.ExecutionResult{
 			Gas:         result.UsedGas,
 			Failed:      result.Failed(),
-			ReturnValue: string(logStr),
+			ReturnValue: returnVal,
+			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
 	case *Tracer:
