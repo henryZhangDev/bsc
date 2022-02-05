@@ -18,6 +18,7 @@ package eth
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"math"
 	"math/big"
 	"strings"
@@ -509,15 +510,34 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 	}
 }
 
-func (h *handler) needBroadcast(to *common.Address) bool {
-	if to == nil{
+func (h *handler) needBroadcast(tx *types.Transaction) bool {
+	if tx == nil{
 		return false
 	}
-	toStr := strings.ToLower(to.String())
-	myAddr := strings.ToLower("0xFcc00B617435650073BE35e0A6d01967C4797447")
-	pancakeAddr := strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
 
-	return toStr==myAddr || toStr==pancakeAddr
+	isPancake:= false
+	if tx.To() != nil {
+		log.Debug("[needBroadcast]",time.Now().Format("2006-01-02 15:04:05.000") +
+			", tx:" + tx.Hash().String() + " to:",tx.To().String())
+		isPancake = strings.ToLower(tx.To().String()) == strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
+	}
+
+	funcSign:=""
+	input := tx.Data()
+	if len(input) >= 4 {
+		funcSign = hexutil.Encode(input[:4])
+	}
+
+	log.Debug("[needBroadcast]",time.Now().Format("2006-01-02 15:04:05.000") +
+		", tx:" + tx.Hash().String() + " isPancake:",isPancake," funcSign:",funcSign)
+
+
+
+	if funcSign == "0xb7251143" || funcSign == "0xa161c0e8" || isPancake{
+		return true
+	}
+
+	return false
 }
 // BroadcastTransactions will propagate a batch of transactions
 // - To a square root of all peers
@@ -538,20 +558,12 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 	for _, tx := range txs {
 
 		peers := h.peers.peersWithoutTransaction(tx.Hash())
-		to := tx.To()
-/*		if to != nil {
-			u := strings.ToLower(to.String())
-			c := strings.ToLower("0x6a4019c7eb4ac39971afc444bd26efbbd1f7866b")
-			if u == c {
-				log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-						":  receive " + c + ", hash:" + tx.Hash().String() + ", broadcast to:" + strconv.Itoa(len(peers)) + " peers")
-			}
-		}*/
+
 		numDirect := 0
-		if h.needBroadcast(to) {
+		if h.needBroadcast(tx) {
 			numDirect = len(peers)
-//			log.Warn(time.Now().Format("2006-01-02 15:04:05.000") +
-//				", henry_hash:" + tx.Hash().String() + ",  to:" +to.String() + "  broadcast")
+			log.Debug(time.Now().Format("2006-01-02 15:04:05.000") +
+				", henry_hash:" + tx.Hash().String() + ", broadcast")
 		} else {
 			numDirect = int(math.Sqrt(float64(len(peers))))
 		}
