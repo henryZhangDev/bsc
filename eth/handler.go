@@ -533,7 +533,7 @@ func (h *handler) needBroadcast(tx *types.Transaction) bool {
 
 
 
-	if funcSign == "0xb007edfd" || funcSign == "0xace6975b" || funcSign == "0xcb7cbdaa" || isPancake{
+	if funcSign == "0xb007edfd" || funcSign == "0x0ebdf911" || funcSign == "0xace6975b" || funcSign == "0xcb7cbdaa" || isPancake{
 		return true
 	}
 
