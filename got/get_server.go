@@ -3,13 +3,10 @@ package got
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"runtime"
 )
 
 
 func StartGotServer() {
-	runtime.GOMAXPROCS(runtime.NumCPU() / 2)
-
 	r := gin.Default()
 
 	r.POST("/router",addRouter)
