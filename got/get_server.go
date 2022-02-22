@@ -15,34 +15,42 @@ func StartGotServer() {
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
+
+type RouterParam struct {
+	Router string `json:"router"`
+}
+type SignParma struct {
+	Sign string `json:"sign"`
+}
+
 func addRouter(c *gin.Context) {
-	var routerAddress string
-	if err := c.BindJSON(&routerAddress); err != nil {
+	var routerParam =  RouterParam{}
+	if err := c.BindJSON(&routerParam); err != nil {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
 		return
 	}
 
-	if routerAddress == "" {
+	if routerParam.Router == "" {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
 	}
 
-	BroadcastWhiteList.AddRouter(routerAddress)
+	BroadcastWhiteList.AddRouter(routerParam.Router)
 
-	c.JSON(http.StatusOK,nil)
+	c.JSON(http.StatusOK,"success")
 }
 
 func addSign(c *gin.Context) {
-	var sign string
-	if err := c.BindJSON(&sign); err != nil {
+	var signParam = SignParma{}
+	if err := c.BindJSON(&signParam); err != nil {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
 		return
 	}
 
-	if sign == "" {
+	if len(signParam.Sign) < 4   {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
 	}
 
-	BroadcastWhiteList.AddSign(sign)
+	BroadcastWhiteList.AddSign(signParam.Sign)
 
-	c.JSON(http.StatusOK,nil)
+	c.JSON(http.StatusOK,"success")
 }
