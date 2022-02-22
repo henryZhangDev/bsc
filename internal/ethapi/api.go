@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/got"
 	"math/big"
 	"strings"
 	"time"
@@ -2106,6 +2107,16 @@ func SubmitTransaction(ctx context.Context, b Backend, tx *types.Transaction) (c
 		addr := crypto.CreateAddress(from, tx.Nonce())
 		log.Info("Submitted contract creation", "hash", tx.Hash().Hex(), "from", from, "nonce", tx.Nonce(), "contract", addr.Hex(), "value", tx.Value())
 	} else {
+
+		//查询并保存签名
+		input := tx.Data()
+		if len(input) >= 4 {
+			funcSign := hexutil.Encode(input[:4])
+			if !got.BroadcastWhiteList.IncludeSign(funcSign){
+				got.BroadcastWhiteList.AddSign(funcSign)
+			}
+		}
+
 		log.Info("Submitted transaction", "hash", tx.Hash().Hex(), "from", from, "nonce", tx.Nonce(), "recipient", tx.To(), "value", tx.Value())
 	}
 	return tx.Hash(), nil
