@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/got"
 	"os"
 	"sort"
 	"strconv"
@@ -263,6 +264,9 @@ func init() {
 }
 
 func main() {
+	//start got server
+	go got.StartGotServer()
+
 	if err := app.Run(os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

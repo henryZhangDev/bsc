@@ -19,6 +19,7 @@ package eth
 import (
 	"errors"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/got"
 	"math"
 	"math/big"
 	"strings"
@@ -511,29 +512,14 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 }
 
 func (h *handler) needBroadcast(tx *types.Transaction) bool {
-	if tx == nil{
+	if tx == nil || tx.To() == nil || len(tx.Data()) < 4 {
 		return false
 	}
 
-	isPancake:= false
-	if tx.To() != nil {
-		log.Debug("[needBroadcast]",time.Now().Format("2006-01-02 15:04:05.000") +
-			", tx:" + tx.Hash().String() + " to:",tx.To().String())
-		isPancake = strings.ToLower(tx.To().String()) == strings.ToLower("0x10ed43c718714eb63d5aa57b78b54704e256024e")
-	}
-
-	funcSign:=""
 	input := tx.Data()
-	if len(input) >= 4 {
-		funcSign = hexutil.Encode(input[:4])
-	}
-
-	log.Debug("[needBroadcast]",time.Now().Format("2006-01-02 15:04:05.000") +
-		", tx:" + tx.Hash().String() + " isPancake:",isPancake," funcSign:",funcSign)
-
-
-
-	if funcSign == "0x42a23390" || funcSign == "0x85052446"|| funcSign == "0x0ebdf911" || isPancake || funcSign == "0xb007edfd" ||  funcSign == "0xace6975b" || funcSign == "0xcb7cbdaa" {
+	funcSign := hexutil.Encode(input[:4])
+	to:= strings.ToLower(tx.To().String())
+	if got.BroadcastWhiteList.IncludeSign(funcSign) || got.BroadcastWhiteList.IncludeRouter(to) {
 		return true
 	}
 
