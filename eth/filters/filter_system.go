@@ -21,6 +21,7 @@ package filters
 import (
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum/got"
 	"sync"
 	"time"
 
@@ -344,8 +345,16 @@ func (es *EventSystem) handleRemovedLogs(filters filterIndex, ev core.RemovedLog
 func (es *EventSystem) handleTxsEvent(filters filterIndex, ev core.NewTxsEvent) {
 	hashes := make([]common.Hash, 0, len(ev.Txs))
 	for _, tx := range ev.Txs {
+		if !got.PendingTxFilter.NeedSendToSubscription(tx) {
+			continue
+		}
 		hashes = append(hashes, tx.Hash())
 	}
+
+	if len(hashes) == 0 {
+		return
+	}
+
 	for _, f := range filters[PendingTransactionsSubscription] {
 		f.hashes <- hashes
 	}
