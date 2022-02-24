@@ -8,8 +8,14 @@ import (
 func StartGotServer() {
 	r := gin.Default()
 
-	r.POST("/router", addRouter)
-	r.POST("/sign", addSign)
+	r.POST("/broadcast/router", broadcastAddRouter)
+	r.POST("/broadcast/sign", broadcastAddSign)
+
+	r.POST("/filter/to", filterAddTo)
+	r.POST("/filter/sign", filterAddSign)
+
+	r.GET("/filter/to", filterListTo)
+	r.GET("/filter/sign", filterListSign)
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
@@ -17,11 +23,14 @@ func StartGotServer() {
 type RouterParam struct {
 	Router string `json:"router"`
 }
+type ToParam struct {
+	To string `json:"to"`
+}
 type SignParma struct {
 	Sign string `json:"sign"`
 }
 
-func addRouter(c *gin.Context) {
+func broadcastAddRouter(c *gin.Context) {
 	var routerParam = RouterParam{}
 	if err := c.BindJSON(&routerParam); err != nil {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
@@ -37,7 +46,7 @@ func addRouter(c *gin.Context) {
 	c.JSON(http.StatusOK, "success")
 }
 
-func addSign(c *gin.Context) {
+func broadcastAddSign(c *gin.Context) {
 	var signParam = SignParma{}
 	if err := c.BindJSON(&signParam); err != nil {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
@@ -51,4 +60,58 @@ func addSign(c *gin.Context) {
 	BroadcastWhiteList.AddSign(signParam.Sign)
 
 	c.JSON(http.StatusOK, "success")
+}
+
+func filterAddTo(c *gin.Context) {
+	var toParam = ToParam{}
+	if err := c.BindJSON(&toParam); err != nil {
+		c.JSON(http.StatusBadRequest, "params unmarshal failed")
+		return
+	}
+
+	if toParam.To == "" {
+		c.JSON(http.StatusBadRequest, "params unmarshal failed")
+	}
+
+	PendingTxFilter.AddTo(toParam.To)
+
+	c.JSON(http.StatusOK, "success")
+}
+
+func filterAddSign(c *gin.Context) {
+	var signParam = SignParma{}
+	if err := c.BindJSON(&signParam); err != nil {
+		c.JSON(http.StatusBadRequest, "params unmarshal failed")
+		return
+	}
+
+	if len(signParam.Sign) < 4 {
+		c.JSON(http.StatusBadRequest, "params unmarshal failed")
+	}
+
+	PendingTxFilter.AddSign(signParam.Sign)
+
+	c.JSON(http.StatusOK, "success")
+}
+
+func filterListTo(c *gin.Context) {
+
+	data, err := PendingTxFilter.ListTo()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, string(data))
+}
+
+func filterListSign(c *gin.Context) {
+
+	data, err := PendingTxFilter.ListSign()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, string(data))
 }
