@@ -96,6 +96,7 @@ func init() {
 }
 
 type TxFilter struct {
+	enable     bool
 	signLocker sync.RWMutex
 	toLocker   sync.RWMutex
 
@@ -153,6 +154,18 @@ func (filter *TxFilter) IncludeTo(to string) bool {
 	_, ok := filter.ToMap[to]
 
 	return ok
+}
+
+func (filter *TxFilter) IsEnable() bool {
+	return filter.enable
+}
+
+func (filter *TxFilter) SetEnable() {
+	filter.enable = true
+}
+
+func (filter *TxFilter) SetDisable() {
+	filter.enable = false
 }
 
 func (filter *TxFilter) AddTo(to string) {

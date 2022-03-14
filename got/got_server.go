@@ -17,6 +17,9 @@ func StartGotServer() {
 	r.GET("/filter/to", filterListTo)
 	r.GET("/filter/sign", filterListSign)
 
+	r.GET("/filter/enable", enable)
+	r.GET("/filter/disable", disable)
+
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
@@ -114,4 +117,14 @@ func filterListSign(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, string(data))
+}
+
+func enable(c *gin.Context) {
+	PendingTxFilter.SetEnable()
+	c.JSON(http.StatusOK, string("success"))
+}
+
+func disable(c *gin.Context) {
+	PendingTxFilter.SetDisable()
+	c.JSON(http.StatusOK, string("success"))
 }
