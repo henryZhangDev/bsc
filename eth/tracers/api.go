@@ -886,6 +886,7 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 	}
 	// Run the transaction with tracing enabled.
 	vmenv := vm.NewEVM(vmctx, txContext, statedb, api.backend.ChainConfig(), vm.Config{Debug: true, Tracer: tracer})
+	vmenv.IsTraceCall = true
 
 	if posa, ok := api.backend.Engine().(consensus.PoSA); ok && message.From() == vmctx.Coinbase &&
 		posa.IsSystemContract(message.To()) && message.GasPrice().Cmp(big.NewInt(0)) == 0 {
@@ -898,10 +899,12 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 
 	// Call Prepare to clear out the statedb access list
 	statedb.Prepare(txctx.hash, txctx.block, txctx.index)
-	result, err, ls := core.MyApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
+	result, err := core.ApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %w", err)
 	}
+
+	ls := vmenv.StateDB.Logs()
 
 	logStr, err := json.Marshal(ls)
 	if err != nil {
