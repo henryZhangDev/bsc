@@ -2,8 +2,6 @@ package main
 
 import "github.com/ethereum/go-ethereum/got"
 
-func main()  {
+func main() {
 	got.StartGotServer()
 }
-
-
