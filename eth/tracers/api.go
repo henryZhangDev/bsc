@@ -348,7 +348,7 @@ func (api *API) traceChain(ctx context.Context, start, end *types.Block, config 
 			}
 			// Prepare the statedb for tracing. Don't use the live database for
 			// tracing to avoid persisting state junks into the database.
-			statedb, err = api.backend.StateAtBlock(localctx, block, reexec, statedb, false)
+			statedb, err = api.backend.StateAtBlock(localctx, block, reexec, statedb, true)
 			if err != nil {
 				failed = err
 				break
@@ -456,7 +456,7 @@ func (api *API) TraceBlockFromFile(ctx context.Context, file string, config *Tra
 // EVM against a block pulled from the pool of bad ones and returns them as a JSON
 // object.
 func (api *API) TraceBadBlock(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
-/*	for _, block := range rawdb.ReadAllBadBlocks(api.backend.ChainDb()) {
+	/*	for _, block := range rawdb.ReadAllBadBlocks(api.backend.ChainDb()) {
 		if block.Hash() == hash {
 			return api.traceBlock(ctx, block, config)
 		}
@@ -812,6 +812,7 @@ func (api *API) TraceCall(ctx context.Context, args ethapi.CallArgs, blockNrOrHa
 	}
 	return api.traceTx(ctx, msg, new(txTraceContext), vmctx, statedb, traceConfig)
 }
+
 // toTransaction converts the arguments to a transaction.
 // This assumes that setDefaults has been called.
 func (api *API) toTransaction(args core.Message) *types.Transaction {
@@ -819,7 +820,7 @@ func (api *API) toTransaction(args core.Message) *types.Transaction {
 	input = args.Data()
 
 	var data types.TxData
-/*	if args.AccessList == nil {
+	/*	if args.AccessList == nil {
 		data = &types.LegacyTx{
 			To:       args.To(),
 			Nonce:    args.Nonce(),
@@ -829,17 +830,17 @@ func (api *API) toTransaction(args core.Message) *types.Transaction {
 			Data:     input,
 		}
 	} else {*/
-		data = &types.AccessListTx{
-			To:         args.To(),
-			ChainID:    big.NewInt(56),
-			Nonce:      args.Nonce(),
-			Gas:        args.Gas(),
-			GasPrice:   args.GasPrice(),
-			Value:      args.Value(),
-			Data:       input,
-			AccessList: args.AccessList(),
-		}
-//	}
+	data = &types.AccessListTx{
+		To:         args.To(),
+		ChainID:    big.NewInt(56),
+		Nonce:      args.Nonce(),
+		Gas:        args.Gas(),
+		GasPrice:   args.GasPrice(),
+		Value:      args.Value(),
+		Data:       input,
+		AccessList: args.AccessList(),
+	}
+	//	}
 	return types.NewTx(data)
 }
 
@@ -853,7 +854,7 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 		err       error
 		txContext = core.NewEVMTxContext(message)
 	)
-//	log.Warn("ApplyMessage start traceTx, now:" + time.Now().String())
+	//	log.Warn("ApplyMessage start traceTx, now:" + time.Now().String())
 	switch {
 	case config != nil && config.Tracer != nil:
 		// Define a meaningful timeout of a single transaction trace
@@ -897,7 +898,12 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 
 	// Call Prepare to clear out the statedb access list
 	statedb.Prepare(txctx.hash, txctx.block, txctx.index)
-	result, err := core.ApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
+	result, err, ls := core.MyApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
+	if err != nil {
+		return nil, fmt.Errorf("tracing failed: %w", err)
+	}
+
+	logStr, err := json.Marshal(ls)
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %w", err)
 	}
@@ -915,6 +921,7 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 			Failed:      result.Failed(),
 			ReturnValue: returnVal,
 			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
+			EventLog:    string(logStr),
 		}, nil
 
 	case *Tracer:
