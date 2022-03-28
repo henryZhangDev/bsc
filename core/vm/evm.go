@@ -121,8 +121,6 @@ type TxContext struct {
 //
 // The EVM should never be reused and is not thread safe.
 type EVM struct {
-	IsTraceCall bool
-
 	// Context provides auxiliary blockchain related information
 	Context BlockContext
 	TxContext
@@ -274,7 +272,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
-	if err != nil && !evm.IsTraceCall {
+	if err != nil && !evm.vmConfig.Debug {
 		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != ErrExecutionReverted {
 			gas = 0
