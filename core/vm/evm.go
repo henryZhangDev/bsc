@@ -269,14 +269,11 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			gas = contract.Gas
 		}
 	}
-
-	evm.StateDB.RevertToSnapshot(snapshot)
-
 	// When an error was returned by the EVM or when setting the creation code
 	// above we revert to the snapshot and consume any gas remaining. Additionally
 	// when we're in homestead this also counts for code storage gas errors.
 	if err != nil {
-		//evm.StateDB.RevertToSnapshot(snapshot)
+		evm.StateDB.RevertToSnapshot(snapshot)
 		if err != ErrExecutionReverted {
 			gas = 0
 		}
