@@ -1309,6 +1309,7 @@ type StructLogRes struct {
 	Error   error              `json:"error,omitempty"`
 	Stack   *[]string          `json:"stack,omitempty"`
 	Memory  *[]string          `json:"memory,omitempty"`
+	Args    string             `json:"args ,omitempty"`
 	Storage *map[string]string `json:"storage,omitempty"`
 }
 
@@ -1322,6 +1323,7 @@ func FormatLogs(logs []vm.StructLog) []StructLogRes {
 			Gas:     trace.Gas,
 			GasCost: trace.GasCost,
 			Depth:   trace.Depth,
+			Args:    hexutil.Encode(trace.ReturnData),
 			Error:   trace.Err,
 		}
 		if trace.Stack != nil {

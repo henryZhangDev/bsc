@@ -204,9 +204,18 @@ func (l *StructLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost ui
 		rdata = make([]byte, len(rData))
 		copy(rdata, rData)
 	}
-	// create a new snapshot of the EVM.
-	log := StructLog{pc, op, gas, cost, mem, memory.Len(), stck, rdata, storage, depth, env.StateDB.GetRefund(), err}
-	l.logs = append(l.logs, log)
+
+	if op == CALL || op == STATICCALL || op == DELEGATECALL || op == CALLCODE {
+		tmpStack := &Stack{data: stck}
+		tmpStack.pop()
+		// Pop other call parameters.
+		_, inOffset, inSize, _, _ := tmpStack.pop(), tmpStack.pop(), tmpStack.pop(), tmpStack.pop(), tmpStack.pop()
+		args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
+
+		// create a new snapshot of the EVM.
+		log := StructLog{pc, op, gas, cost, mem, memory.Len(), stck, args, storage, depth, env.StateDB.GetRefund(), err}
+		l.logs = append(l.logs, log)
+	}
 }
 
 // CaptureFault implements the Tracer interface to trace an execution fault
@@ -235,7 +244,7 @@ func (l *StructLogger) CallLogs() []StructLog {
 	for _, log := range l.logs {
 		if log.Op.String() == "CALL" || log.Op.String() == "CALLCODE" ||
 			log.Op.String() == "DELEGATECALL" || log.Op.String() == "DELEGATECALL" ||
-			log.Op.String() == "STATICCALL"{
+			log.Op.String() == "STATICCALL" {
 			cLogs = append(cLogs, log)
 		}
 	}
