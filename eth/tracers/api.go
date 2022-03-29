@@ -918,12 +918,17 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 		if len(result.Revert()) > 0 {
 			returnVal = fmt.Sprintf("%x", result.Revert())
 		}
+		failedReason := ""
+		if result.Err != nil {
+			failedReason = result.Err.Error()
+		}
 		return &ethapi.ExecutionResult{
-			Gas:         result.UsedGas,
-			Failed:      result.Failed(),
-			ReturnValue: returnVal,
-			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
-			EventLog:    string(logStr),
+			Gas:          result.UsedGas,
+			Failed:       result.Failed(),
+			FailedReason: failedReason,
+			ReturnValue:  returnVal,
+			StructLogs:   ethapi.FormatLogs(tracer.StructLogs()),
+			EventLog:     string(logStr),
 		}, nil
 
 	case *Tracer:

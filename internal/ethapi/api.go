@@ -1291,11 +1291,12 @@ func (s *PublicBlockChainAPI) GetDiffAccountsWithScope(ctx context.Context, bloc
 // while replaying a transaction in debug mode as well as transaction
 // execution status, the amount of gas used and the return value
 type ExecutionResult struct {
-	Gas         uint64         `json:"gas" :"gas"`
-	Failed      bool           `json:"failed" :"failed"`
-	ReturnValue string         `json:"returnValue" :"return_value"`
-	StructLogs  []StructLogRes `json:"structLogs" :"struct_logs"`
-	EventLog    string         `json:"EventLog" :"eventLog"`
+	Gas          uint64         `json:"gas" :"gas"`
+	Failed       bool           `json:"failed" :"failed"`
+	FailedReason string         `json:"failedReason" : "failedReason"`
+	ReturnValue  string         `json:"returnValue" :"return_value"`
+	StructLogs   []StructLogRes `json:"structLogs" :"struct_logs"`
+	EventLog     string         `json:"EventLog" :"eventLog"`
 }
 
 // StructLogRes stores a structured log emitted by the EVM while replaying a

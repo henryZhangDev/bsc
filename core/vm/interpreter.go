@@ -227,6 +227,10 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		op = contract.GetOp(pc)
 		operation := in.cfg.JumpTable[op]
 		if operation == nil {
+			if in.evm.vmConfig.Debug {
+				pc++
+				continue
+			}
 			return nil, &ErrInvalidOpCode{opcode: op}
 		}
 		// Validate stack
@@ -248,7 +252,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 		// Static portion of gas
 		cost = operation.constantGas // For tracing
-		if !contract.UseGas(operation.constantGas) {
+		if !in.evm.vmConfig.Debug && !contract.UseGas(operation.constantGas) {
 			return nil, ErrOutOfGas
 		}
 
@@ -275,7 +279,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 			var dynamicCost uint64
 			dynamicCost, err = operation.dynamicGas(in.evm, contract, stack, mem, memorySize)
 			cost += dynamicCost // total cost, for debug tracing
-			if err != nil || !contract.UseGas(dynamicCost) {
+			if !in.evm.vmConfig.Debug && (err != nil || !contract.UseGas(dynamicCost)) {
 				return nil, ErrOutOfGas
 			}
 		}
@@ -298,9 +302,16 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 		switch {
 		case err != nil:
-			return nil, err
+			if in.evm.vmConfig.Debug && err == ErrInvalidJump {
+				pc++
+			} else {
+				return nil, err
+			}
 		case operation.reverts:
-			return res, ErrExecutionReverted
+			if !in.evm.vmConfig.Debug {
+				return res, ErrExecutionReverted
+			}
+			pc++
 		case operation.halts:
 			return res, nil
 		case !operation.jumps:
