@@ -227,10 +227,6 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		op = contract.GetOp(pc)
 		operation := in.cfg.JumpTable[op]
 		if operation == nil {
-			if in.evm.vmConfig.Debug {
-				pc++
-				continue
-			}
 			return nil, &ErrInvalidOpCode{opcode: op}
 		}
 		// Validate stack
