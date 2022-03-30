@@ -927,8 +927,8 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *txTrac
 			Failed:       result.Failed(),
 			FailedReason: failedReason,
 			ReturnValue:  returnVal,
-			StructLogs:   ethapi.FormatLogs(tracer.StructLogs()),
-			EventLog:     string(logStr),
+			//StructLogs:   ethapi.FormatLogs(tracer.StructLogs()),
+			EventLog: string(logStr),
 		}, nil
 
 	case *Tracer:
