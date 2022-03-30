@@ -231,8 +231,16 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 		// Validate stack
 		if sLen := stack.len(); sLen < operation.minStack {
+			if in.evm.vmConfig.Debug {
+				pc++
+				continue
+			}
 			return nil, &ErrStackUnderflow{stackLen: sLen, required: operation.minStack}
 		} else if sLen > operation.maxStack {
+			if in.evm.vmConfig.Debug {
+				pc++
+				continue
+			}
 			return nil, &ErrStackOverflow{stackLen: sLen, limit: operation.maxStack}
 		}
 		// If the operation is valid, enforce write restrictions
@@ -259,12 +267,12 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// to detect calculation overflows
 		if operation.memorySize != nil {
 			memSize, overflow := operation.memorySize(stack)
-			if !in.evm.vmConfig.Debug && overflow {
+			if overflow {
 				return nil, ErrGasUintOverflow
 			}
 			// memory is expanded in words of 32 bytes. Gas
 			// is also calculated in words.
-			if memorySize, overflow = math.SafeMul(toWordSize(memSize), 32); !in.evm.vmConfig.Debug && overflow {
+			if memorySize, overflow = math.SafeMul(toWordSize(memSize), 32); overflow {
 				return nil, ErrGasUintOverflow
 			}
 		}
