@@ -263,12 +263,12 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// to detect calculation overflows
 		if operation.memorySize != nil {
 			memSize, overflow := operation.memorySize(stack)
-			if overflow {
+			if !in.evm.vmConfig.Debug && overflow {
 				return nil, ErrGasUintOverflow
 			}
 			// memory is expanded in words of 32 bytes. Gas
 			// is also calculated in words.
-			if memorySize, overflow = math.SafeMul(toWordSize(memSize), 32); overflow {
+			if memorySize, overflow = math.SafeMul(toWordSize(memSize), 32); !in.evm.vmConfig.Debug && overflow {
 				return nil, ErrGasUintOverflow
 			}
 		}
