@@ -231,10 +231,6 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 		// Validate stack
 		if sLen := stack.len(); sLen < operation.minStack {
-			if in.evm.vmConfig.Debug {
-				pc++
-				continue
-			}
 			return nil, &ErrStackUnderflow{stackLen: sLen, required: operation.minStack}
 		} else if sLen > operation.maxStack {
 			return nil, &ErrStackOverflow{stackLen: sLen, limit: operation.maxStack}
@@ -252,7 +248,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		}
 		// Static portion of gas
 		cost = operation.constantGas // For tracing
-		if !in.evm.vmConfig.Debug && !contract.UseGas(operation.constantGas) {
+		if !contract.UseGas(operation.constantGas) {
 			return nil, ErrOutOfGas
 		}
 
@@ -279,7 +275,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 			var dynamicCost uint64
 			dynamicCost, err = operation.dynamicGas(in.evm, contract, stack, mem, memorySize)
 			cost += dynamicCost // total cost, for debug tracing
-			if !in.evm.vmConfig.Debug && (err != nil || !contract.UseGas(dynamicCost)) {
+			if err != nil || !contract.UseGas(dynamicCost) {
 				return nil, ErrOutOfGas
 			}
 		}
