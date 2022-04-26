@@ -298,16 +298,9 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 
 		switch {
 		case err != nil:
-			if in.evm.vmConfig.Debug && err == ErrInvalidJump {
-				pc++
-			} else {
-				return nil, err
-			}
+			return nil, err
 		case operation.reverts:
-			if !in.evm.vmConfig.Debug {
-				return res, ErrExecutionReverted
-			}
-			pc++
+			return res, ErrExecutionReverted
 		case operation.halts:
 			return res, nil
 		case !operation.jumps:

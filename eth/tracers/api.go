@@ -20,7 +20,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -974,16 +973,9 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *Contex
 	}
 
 	// Call Prepare to clear out the statedb access list
-
 	statedb.Prepare(txctx.TxHash, txctx.BlockHash, txctx.TxIndex)
+
 	result, err := core.ApplyMessage(vmenv, message, new(core.GasPool).AddGas(message.Gas()))
-	if err != nil {
-		return nil, fmt.Errorf("tracing failed: %w", err)
-	}
-
-	ls := vmenv.StateDB.Logs()
-
-	logStr, err := json.Marshal(ls)
 	if err != nil {
 		return nil, fmt.Errorf("tracing failed: %w", err)
 	}
@@ -996,17 +988,11 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *Contex
 		if len(result.Revert()) > 0 {
 			returnVal = fmt.Sprintf("%x", result.Revert())
 		}
-		failedReason := ""
-		if result.Err != nil {
-			failedReason = result.Err.Error()
-		}
 		return &ethapi.ExecutionResult{
 			Gas:          result.UsedGas,
 			Failed:       result.Failed(),
-			FailedReason: failedReason,
 			ReturnValue:  returnVal,
-			//StructLogs:   ethapi.FormatLogs(tracer.StructLogs()),
-			EventLog: string(logStr),
+			StructLogs:   ethapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
 	case Tracer:
