@@ -956,7 +956,6 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *Contex
 		if len(result.Revert()) > 0 {
 			returnVal = fmt.Sprintf("%x", result.Revert())
 		}
-
 		return &ethapi.ExecutionResult{
 			Gas:         result.UsedGas,
 			Failed:      result.Failed(),
