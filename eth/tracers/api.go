@@ -891,37 +891,6 @@ func (api *API) TraceCall(ctx context.Context, args ethapi.CallArgs, blockNrOrHa
 	return api.traceTx(ctx, msg, new(Context), vmctx, statedb, traceConfig)
 }
 
-// toTransaction converts the arguments to a transaction.
-// This assumes that setDefaults has been called.
-func (api *API) toTransaction(args core.Message) *types.Transaction {
-	var input []byte
-	input = args.Data()
-
-	var data types.TxData
-	/*	if args.AccessList == nil {
-		data = &types.LegacyTx{
-			To:       args.To(),
-			Nonce:    args.Nonce(),
-			Gas:      args.Gas(),
-			GasPrice: args.GasPrice(),
-			Value:    args.Value(),
-			Data:     input,
-		}
-	} else {*/
-	data = &types.AccessListTx{
-		To:         args.To(),
-		ChainID:    big.NewInt(56),
-		Nonce:      args.Nonce(),
-		Gas:        args.Gas(),
-		GasPrice:   args.GasPrice(),
-		Value:      args.Value(),
-		Data:       input,
-		AccessList: args.AccessList(),
-	}
-	//	}
-	return types.NewTx(data)
-}
-
 // traceTx configures a new tracer according to the provided configuration, and
 // executes the given message in the provided environment. The return value will
 // be tracer dependent.
@@ -932,7 +901,6 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *Contex
 		err       error
 		txContext = core.NewEVMTxContext(message)
 	)
-	//	log.Warn("ApplyMessage start traceTx, now:" + time.Now().String())
 	switch {
 	case config == nil:
 		tracer = vm.NewStructLogger(nil)
@@ -985,9 +953,6 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *Contex
 	case *vm.StructLogger:
 		// If the result contains a revert reason, return it.
 		returnVal := fmt.Sprintf("%x", result.Return())
-		if len(result.Revert()) > 0 {
-			returnVal = fmt.Sprintf("%x", result.Revert())
-		}
 		return &ethapi.ExecutionResult{
 			Gas:          result.UsedGas,
 			Failed:       result.Failed(),
