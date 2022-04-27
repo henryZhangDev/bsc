@@ -78,7 +78,7 @@ func (s *stats) PrintAndReset()  {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.Print(s.packets)
-	for key, _ := range s.packets {
+	for key := range s.packets {
 		delete(s.packets, key)
 	}
 }
@@ -88,7 +88,7 @@ func (s *stats) GetAndReset() map[string]map[string]int {
 	defer s.lock.Unlock()
 	copy := make(map[string]map[string]int)
 	s.Print(s.packets)
-	for key, _ := range s.packets {
+	for key := range s.packets {
 		copy[key] = s.packets[key]
 		delete(s.packets, key)
 	}
