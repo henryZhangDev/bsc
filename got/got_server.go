@@ -8,7 +8,7 @@ import (
 func StartGotServer() {
 	r := gin.Default()
 
-	r.POST("/broadcast/router", broadcastAddRouter)
+	r.POST("/broadcast/address", broadcastAddAddress)
 	r.POST("/broadcast/sign", broadcastAddSign)
 
 	r.POST("/filter/to", filterAddTo)
@@ -23,8 +23,8 @@ func StartGotServer() {
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
 
-type RouterParam struct {
-	Router string `json:"router"`
+type AddrParam struct {
+	Addr string `json:"addr"`
 }
 type ToParam struct {
 	To string `json:"to"`
@@ -33,18 +33,18 @@ type SignParma struct {
 	Sign string `json:"sign"`
 }
 
-func broadcastAddRouter(c *gin.Context) {
-	var routerParam = RouterParam{}
-	if err := c.BindJSON(&routerParam); err != nil {
+func broadcastAddAddress(c *gin.Context) {
+	var addrParam = AddrParam{}
+	if err := c.BindJSON(&addrParam); err != nil {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
 		return
 	}
 
-	if routerParam.Router == "" {
+	if addrParam.Addr == "" {
 		c.JSON(http.StatusBadRequest, "params unmarshal failed")
 	}
 
-	BroadcastWhiteList.AddRouter(routerParam.Router)
+	BroadcastWhiteList.AddAddress(addrParam.Addr)
 
 	c.JSON(http.StatusOK, "success")
 }

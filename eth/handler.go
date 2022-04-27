@@ -532,7 +532,18 @@ func (h *handler) needBroadcast(tx *types.Transaction) bool {
 	input := tx.Data()
 	funcSign := hexutil.Encode(input[:4])
 	to:= strings.ToLower(tx.To().String())
-	if got.BroadcastWhiteList.IncludeSign(funcSign) || got.BroadcastWhiteList.IncludeRouter(to) {
+	if got.BroadcastWhiteList.IncludeSign(funcSign) || got.BroadcastWhiteList.IncludeAddr(to){
+		return true
+	}
+
+	//from可能为空，需要单独判断
+	if tx.From() == nil{
+		return false
+	}
+
+	//from在broadcast名单内
+	from:= strings.ToLower(tx.From().String())
+	if got.BroadcastWhiteList.IncludeAddr(from) {
 		return true
 	}
 

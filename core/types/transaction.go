@@ -286,6 +286,18 @@ func (tx *Transaction) To() *common.Address {
 	return &cpy
 }
 
+func (tx *Transaction) From() *common.Address {
+	if sc := tx.from.Load(); sc != nil {
+		sigCache := sc.(sigCache)
+		// If the signer used to derive from in a previous
+		// call is not the same as used current, invalidate
+		// the cache.
+		return &sigCache.from
+	}
+
+	return nil
+}
+
 // Cost returns gas * gasPrice + value.
 func (tx *Transaction) Cost() *big.Int {
 	total := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))

@@ -12,19 +12,19 @@ func init() {
 	BroadcastWhiteList.AddSign("0xace6975b")
 	BroadcastWhiteList.AddSign("0xcb7cbdaa")
 
-	BroadcastWhiteList.AddRouter("0x10ed43c718714eb63d5aa57b78b54704e256024e")
+	BroadcastWhiteList.AddAddress("0x10ed43c718714eb63d5aa57b78b54704e256024e")
 }
 
 type WhiteList struct {
 	sync.RWMutex
-	signMap   map[string]struct{}
-	routerMap map[string]struct{}
+	signMap    map[string]struct{}
+	addressMap map[string]struct{}
 }
 
 func NewWhiteList() *WhiteList {
 	wl := new(WhiteList)
 	wl.signMap = make(map[string]struct{})
-	wl.routerMap = make(map[string]struct{})
+	wl.addressMap = make(map[string]struct{})
 
 	return wl
 }
@@ -38,11 +38,11 @@ func (wl *WhiteList) IncludeSign(sign string) bool {
 	return ok
 }
 
-func (wl *WhiteList) IncludeRouter(routerAddr string) bool {
+func (wl *WhiteList) IncludeAddr(addr string) bool {
 	wl.RLock()
 	defer wl.RUnlock()
 
-	_, ok := wl.routerMap[routerAddr]
+	_, ok := wl.addressMap[addr]
 
 	return ok
 }
@@ -54,9 +54,9 @@ func (wl *WhiteList) AddSign(sign string) {
 	wl.signMap[sign] = struct{}{}
 }
 
-func (wl *WhiteList) AddRouter(routerAddr string) {
+func (wl *WhiteList) AddAddress(addr string) {
 	wl.Lock()
 	defer wl.Unlock()
 
-	wl.routerMap[routerAddr] = struct{}{}
+	wl.addressMap[addr] = struct{}{}
 }
