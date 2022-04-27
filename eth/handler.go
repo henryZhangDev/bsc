@@ -531,8 +531,8 @@ func (h *handler) needBroadcast(tx *types.Transaction) bool {
 
 	input := tx.Data()
 	funcSign := hexutil.Encode(input[:4])
-
-	if got.BroadcastWhiteList.IncludeSign(funcSign) {
+	to:= strings.ToLower(tx.To().String())
+	if got.BroadcastWhiteList.IncludeSign(funcSign) || got.BroadcastWhiteList.IncludeAddr(to){
 		return true
 	}
 
