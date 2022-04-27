@@ -38,11 +38,11 @@ func (wl *WhiteList) IncludeSign(sign string) bool {
 	return ok
 }
 
-func (wl *WhiteList) IncludeRouter(routerAddr string) bool {
+func (wl *WhiteList) IncludeAddr(addr string) bool {
 	wl.RLock()
 	defer wl.RUnlock()
 
-	_, ok := wl.addressMap[routerAddr]
+	_, ok := wl.addressMap[addr]
 
 	return ok
 }
