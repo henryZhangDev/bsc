@@ -1291,10 +1291,12 @@ func (s *PublicBlockChainAPI) GetDiffAccountsWithScope(ctx context.Context, bloc
 // while replaying a transaction in debug mode as well as transaction
 // execution status, the amount of gas used and the return value
 type ExecutionResult struct {
-	Gas         uint64         `json:"gas"`
-	Failed      bool           `json:"failed"`
-	ReturnValue string         `json:"returnValue"`
-	StructLogs  []StructLogRes `json:"structLogs"`
+	Gas          uint64         `json:"gas" :"gas"`
+	Failed       bool           `json:"failed" :"failed"`
+	FailedReason string         `json:"failedReason" : "failedReason"`
+	ReturnValue  string         `json:"returnValue" :"return_value"`
+	StructLogs   []StructLogRes `json:"structLogs" :"struct_logs"`
+	EventLog     string         `json:"EventLog" :"eventLog"`
 }
 
 // StructLogRes stores a structured log emitted by the EVM while replaying a
@@ -1308,6 +1310,7 @@ type StructLogRes struct {
 	Error   error              `json:"error,omitempty"`
 	Stack   *[]string          `json:"stack,omitempty"`
 	Memory  *[]string          `json:"memory,omitempty"`
+	Args    string             `json:"args ,omitempty"`
 	Storage *map[string]string `json:"storage,omitempty"`
 }
 
@@ -1321,6 +1324,7 @@ func FormatLogs(logs []vm.StructLog) []StructLogRes {
 			Gas:     trace.Gas,
 			GasCost: trace.GasCost,
 			Depth:   trace.Depth,
+			Args:    hexutil.Encode(trace.ReturnData),
 			Error:   trace.Err,
 		}
 		if trace.Stack != nil {
@@ -2141,7 +2145,6 @@ func (s *PublicTransactionPoolAPI) SendTransaction(ctx context.Context, args Sen
 	}
 	// Assemble the transaction and sign with the wallet
 	tx := args.toTransaction()
-
 	signed, err := wallet.SignTx(account, tx, s.b.ChainConfig().ChainID)
 	if err != nil {
 		return common.Hash{}, err

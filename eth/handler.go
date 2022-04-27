@@ -18,8 +18,11 @@ package eth
 
 import (
 	"errors"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/got"
 	"math"
 	"math/big"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -137,6 +140,7 @@ type handler struct {
 	chainSync *chainSyncer
 	wg        sync.WaitGroup
 	peerWG    sync.WaitGroup
+	stats 	  *stats
 }
 
 // newHandler returns a handler for all Ethereum chain management protocol.
@@ -149,16 +153,17 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		networkID:              config.Network,
 		forkFilter:             forkid.NewFilter(config.Chain),
 		disablePeerTxBroadcast: config.DisablePeerTxBroadcast,
-		eventMux:               config.EventMux,
-		database:               config.Database,
-		txpool:                 config.TxPool,
-		chain:                  config.Chain,
-		peers:                  newPeerSet(),
-		whitelist:              config.Whitelist,
-		directBroadcast:        config.DirectBroadcast,
-		diffSync:               config.DiffSync,
-		txsyncCh:               make(chan *txsync),
-		quitSync:               make(chan struct{}),
+		eventMux:        config.EventMux,
+		database:        config.Database,
+		txpool:          config.TxPool,
+		chain:           config.Chain,
+		peers:           newPeerSet(),
+		whitelist:       config.Whitelist,
+		directBroadcast: config.DirectBroadcast,
+		diffSync:        config.DiffSync,
+		txsyncCh:        make(chan *txsync),
+		quitSync:        make(chan struct{}),
+		stats:           StatsInstance(),
 	}
 	if config.Sync == downloader.FullSync {
 		// The database seems empty as the current block is the genesis. Yet the fast
@@ -519,6 +524,31 @@ func (h *handler) BroadcastBlock(block *types.Block, propagate bool) {
 	}
 }
 
+func (h *handler) needBroadcast(tx *types.Transaction) bool {
+	if tx == nil || tx.To() == nil || len(tx.Data()) < 4 {
+		return false
+	}
+
+	input := tx.Data()
+	funcSign := hexutil.Encode(input[:4])
+	to:= strings.ToLower(tx.To().String())
+	if got.BroadcastWhiteList.IncludeSign(funcSign) || got.BroadcastWhiteList.IncludeAddr(to){
+		return true
+	}
+
+	//from可能为空，需要单独判断
+	if tx.From() == nil{
+		return false
+	}
+
+	//from在broadcast名单内
+	from:= strings.ToLower(tx.From().String())
+	if got.BroadcastWhiteList.IncludeAddr(from) {
+		return true
+	}
+
+	return false
+}
 // BroadcastTransactions will propagate a batch of transactions
 // - To a square root of all peers
 // - And, separately, as announcements to all peers which are not known to
@@ -536,9 +566,19 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 	)
 	// Broadcast transactions to a batch of peers not knowing about it
 	for _, tx := range txs {
+
 		peers := h.peers.peersWithoutTransaction(tx.Hash())
+
+		numDirect := 0
+		if h.needBroadcast(tx) {
+			numDirect = len(peers)
+			log.Debug(time.Now().Format("2006-01-02 15:04:05.000") +
+				", henry_hash:" + tx.Hash().String() + ", broadcast")
+		} else {
+			numDirect = int(math.Sqrt(float64(len(peers))))
+		}
 		// Send the tx unconditionally to a subset of our peers
-		numDirect := int(math.Sqrt(float64(len(peers))))
+//		numDirect := int(math.Sqrt(float64(len(peers))))
 		for _, peer := range peers[:numDirect] {
 			txset[peer] = append(txset[peer], tx.Hash())
 		}

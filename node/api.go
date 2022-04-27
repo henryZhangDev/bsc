@@ -324,6 +324,7 @@ func (api *publicAdminAPI) NodeInfo() (*p2p.NodeInfo, error) {
 
 // Datadir retrieves the current data directory the node is using.
 func (api *publicAdminAPI) Datadir() string {
+//	eth.StatsInstance()
 	return api.node.DataDir()
 }
 

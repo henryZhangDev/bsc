@@ -99,7 +99,6 @@ type TxPool interface {
 	// Get retrieves the the transaction from the local txpool with the given hash.
 	Get(hash common.Hash) *types.Transaction
 }
-
 // MakeProtocols constructs the P2P protocol definitions for `eth`.
 func MakeProtocols(backend Backend, network uint64, dnsdisc enode.Iterator) []p2p.Protocol {
 	protocols := make([]p2p.Protocol, len(ProtocolVersions))

@@ -20,8 +20,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/eth"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -475,11 +477,19 @@ func (api *API) TraceBlockFromFile(ctx context.Context, file string, config *Tra
 // EVM against a block pulled from the pool of bad ones and returns them as a JSON
 // object.
 func (api *API) TraceBadBlock(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
-	block := rawdb.ReadBadBlock(api.backend.ChainDb(), hash)
-	if block == nil {
-		return nil, fmt.Errorf("bad block %#x not found", hash)
+	s := eth.StatsInstance()
+	statInfo := s.GetAndReset()
+	str, err := json.Marshal(statInfo)
+	if err != nil {
+		log.Warn("henry_stats_info error:", err)
+		return nil, fmt.Errorf("stats error")
 	}
-	return api.traceBlock(ctx, block, config)
+
+	traces := make([]*txTraceResult, 1)
+	trace := &txTraceResult{Error: string(str), Result: nil}
+	traces = append(traces, trace)
+	log.Warn("henry_stats_info:", string(str))
+	return traces, nil
 }
 
 // StandardTraceBlockToFile dumps the structured logs created during the
@@ -953,14 +963,11 @@ func (api *API) traceTx(ctx context.Context, message core.Message, txctx *Contex
 	case *vm.StructLogger:
 		// If the result contains a revert reason, return it.
 		returnVal := fmt.Sprintf("%x", result.Return())
-		if len(result.Revert()) > 0 {
-			returnVal = fmt.Sprintf("%x", result.Revert())
-		}
 		return &ethapi.ExecutionResult{
-			Gas:         result.UsedGas,
-			Failed:      result.Failed(),
-			ReturnValue: returnVal,
-			StructLogs:  ethapi.FormatLogs(tracer.StructLogs()),
+			Gas:          result.UsedGas,
+			Failed:       result.Failed(),
+			ReturnValue:  returnVal,
+			StructLogs:   ethapi.FormatLogs(tracer.StructLogs()),
 		}, nil
 
 	case Tracer:
