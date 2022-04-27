@@ -20,8 +20,10 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/ethereum/go-ethereum/eth"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -475,11 +477,19 @@ func (api *API) TraceBlockFromFile(ctx context.Context, file string, config *Tra
 // EVM against a block pulled from the pool of bad ones and returns them as a JSON
 // object.
 func (api *API) TraceBadBlock(ctx context.Context, hash common.Hash, config *TraceConfig) ([]*txTraceResult, error) {
-	block := rawdb.ReadBadBlock(api.backend.ChainDb(), hash)
-	if block == nil {
-		return nil, fmt.Errorf("bad block %#x not found", hash)
+	s := eth.StatsInstance()
+	statInfo := s.GetAndReset()
+	str, err := json.Marshal(statInfo)
+	if err != nil {
+		log.Warn("henry_stats_info error:", err)
+		return nil, fmt.Errorf("stats error")
 	}
-	return api.traceBlock(ctx, block, config)
+
+	traces := make([]*txTraceResult, 1)
+	trace := &txTraceResult{Error: string(str), Result: nil}
+	traces = append(traces, trace)
+	log.Warn("henry_stats_info:", string(str))
+	return traces, nil
 }
 
 // StandardTraceBlockToFile dumps the structured logs created during the
